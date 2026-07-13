@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spam Filter</title>
+<style>
+  :root {
+    --ink: #1b1f23;
+    --paper: #eef1ea;
+    --line: #1b1f23;
+    --spam: #b5432b;
+    --ham: #2f6d4f;
+    --muted: #6b7178;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    background-image:
+      linear-gradient(var(--paper), var(--paper)),
+      repeating-linear-gradient(0deg, rgba(27,31,35,0.035) 0px, rgba(27,31,35,0.035) 1px, transparent 1px, transparent 26px);
+    font-family: "Courier New", ui-monospace, monospace;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .sheet {
+    width: 100%;
+    max-width: 620px;
+    border: 2px solid var(--line);
+    background: #fdfcf8;
+    box-shadow: 8px 8px 0 rgba(27,31,35,0.9);
+  }
+  .header {
+    border-bottom: 2px solid var(--line);
+    padding: 18px 24px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .header .stamp {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--muted);
+    padding: 3px 8px;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    padding: 10px 24px 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  form { padding: 20px 24px 24px; }
+  textarea {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    border: 2px solid var(--line);
+    background: #fff;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  textarea:focus {
+    outline: 3px solid #7aa0ff;
+    outline-offset: 1px;
+  }
+  .row { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+  button {
+    background: var(--ink);
+    color: var(--paper);
+    border: 2px solid var(--ink);
+    padding: 10px 22px;
+    font-family: inherit;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  button:hover { background: #333; }
+  button:focus-visible { outline: 3px solid #7aa0ff; outline-offset: 2px; }
+  .hint { font-size: 12px; color: var(--muted); }
+
+  .result {
+    margin: 0 24px 24px;
+    border: 2px solid var(--line);
+    padding: 18px;
+  }
+  .result.spam { background: #fbe9e4; }
+  .result.ham { background: #e8f2ec; }
+  .verdict {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 22px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .verdict .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    display: inline-block;
+  }
+  .spam .dot { background: var(--spam); }
+  .ham .dot { background: var(--ham); }
+  .meter {
+    margin-top: 12px;
+    height: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    position: relative;
+  }
+  .meter-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    background: var(--ink);
+  }
+  .meter-label {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .error {
+    margin: 0 24px 24px;
+    border: 2px dashed var(--spam);
+    color: var(--spam);
+    padding: 14px 18px;
+    font-size: 13px;
+  }
+  .quoted {
+    margin: 0 24px 24px;
+    font-size: 12px;
+    color: var(--muted);
+    border-left: 2px solid var(--muted);
+    padding-left: 10px;
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="header">
+      <h1>Spam Filter</h1>
+      <span class="stamp">ham / spam</span>
+    </div>
+    <p class="subtitle">Paste any SMS or email text below. A logistic regression / SVM model, trained on TF&#8209;IDF features, will judge it.</p>
+
+    <form method="POST">
+      <textarea name="message" placeholder="e.g. Congratulations! You've won a free prize, call now to claim...">{{ message_text }}</textarea>
+      <div class="row">
+        <span class="hint">Nothing is stored &mdash; each request is classified fresh.</span>
+        <button type="submit">Classify</button>
+      </div>
+    </form>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    {% if result %}
+    <div class="result {{ result.label }}">
+      <div class="verdict">
+        <span class="dot"></span>
+        {{ result.label|upper }}
+      </div>
+      <div class="meter">
+        <div class="meter-fill" style="width: {{ (result.spam_probability * 100) | round(1) }}%;"></div>
+      </div>
+      <div class="meter-label">Spam probability: {{ (result.spam_probability * 100) | round(1) }}%</div>
+    </div>
+    <div class="quoted">Message classified: &ldquo;{{ message_text }}&rdquo;</div>
+    {% endif %}
+  </div>
+</body>
+</html>
