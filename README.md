@@ -6,3 +6,4 @@
 ## the idea of this project is how to use flask, docker, and fast api to deploy the model to a simple website
 ## used Render to deploy the frontend and backend 
 ## check it out here (https://spam-classifier-frontend.onrender.com/)
+## Note : The model api shutdown now :(( , so only the code now available
